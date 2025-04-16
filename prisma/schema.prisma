@@ -1,0 +1,175 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                     String           @id @default(cuid())
+  name                   String?
+  clerk_id               String?          @unique
+  username               String?          @unique
+  image                  String?
+  email                  String?          @unique
+  password               String?
+  dateNce                DateTime?
+  marketingEmails        Boolean?         @default(false)
+  createdAt              DateTime         @default(now())
+  updatedAt              DateTime         @updatedAt
+  admin                  Roles            @default(user)
+  description            String?
+  isOnline               Boolean          @default(false)
+  channels               ChannelMember[]
+  receivedFriendRequests Friendship[]     @relation("Addressees")
+  sentFriendRequests     Friendship[]     @relation("Requesters")
+  MemberCargo            MemberCargo[]
+  Message                Message[]
+  MessageFriends         MessageFriends[] @relation("Receives")
+  sendFriends            MessageFriends[] @relation("Send")
+  MessageRead            MessageRead[]
+  Server                 Server[]
+}
+
+model Server {
+  id          String          @id @default(cuid())
+  name        String
+  ownerId     String
+  image       String?
+  createdAt   DateTime        @default(now())
+  inviteCode  String          @unique @default(uuid())
+  Category    Category[]
+  channels    Channel[]
+  members     ChannelMember[]
+  MemberCargo MemberCargo[]
+  owner       User            @relation(fields: [ownerId], references: [clerk_id])
+}
+
+model Channel {
+  id          String       @id @default(cuid())
+  name        String
+  serverId    String
+  botId       String?      @unique
+  createdAt   DateTime     @default(now())
+  isPrivate   Boolean      @default(false)
+  typeChannel ChannelTypes @default(TEXT)
+  categoryId  String?
+  bot         Bot?         @relation(fields: [botId], references: [id])
+  category    Category?    @relation(fields: [categoryId], references: [id])
+  server      Server       @relation(fields: [serverId], references: [id])
+  messages    Message[]
+}
+
+model Category {
+  id        String    @id @default(cuid())
+  name      String
+  serverId  String
+  createdAt DateTime  @default(now())
+  server    Server    @relation(fields: [serverId], references: [id])
+  channels  Channel[]
+}
+
+model ChannelMember {
+  id       String   @id @default(cuid())
+  userId   String
+  serverId String
+  joinedAt DateTime @default(now())
+  server   Server   @relation(fields: [serverId], references: [id])
+  user     User     @relation(fields: [userId], references: [clerk_id])
+
+  @@unique([userId, serverId])
+}
+
+model MemberCargo {
+  id        String   @id @default(cuid())
+  userId    String
+  serverId  String
+  createdAt DateTime @default(now())
+  role      Roles    @default(user)
+  updatedAt DateTime @updatedAt
+  server    Server   @relation(fields: [serverId], references: [id])
+  user      User     @relation(fields: [userId], references: [clerk_id])
+
+  @@unique([userId, serverId])
+}
+
+model Message {
+  id          String        @id @default(cuid())
+  content     String
+  userId      String
+  channelId   String
+  createdAt   DateTime      @default(now())
+  image       String?
+  channel     Channel       @relation(fields: [channelId], references: [id])
+  user        User          @relation(fields: [userId], references: [clerk_id])
+  MessageRead MessageRead[]
+}
+
+model MessageFriends {
+  id              String        @id @default(cuid())
+  content         String
+  sendId          String
+  receivesId      String
+  image           String?
+  createdAt       DateTime      @default(now())
+  receivesFriends User          @relation("Receives", fields: [receivesId], references: [clerk_id])
+  sendUser        User          @relation("Send", fields: [sendId], references: [clerk_id])
+  MessageRead     MessageRead[]
+}
+
+model MessageRead {
+  id               String          @id @default(cuid())
+  userId           String
+  messageId        String
+  readAt           DateTime        @default(now())
+  messageFriendsId String?
+  MessageFriends   MessageFriends? @relation(fields: [messageFriendsId], references: [id])
+  message          Message         @relation(fields: [messageId], references: [id])
+  user             User            @relation(fields: [userId], references: [clerk_id])
+
+  @@unique([userId, messageId])
+}
+
+model Friendship {
+  id          String       @id @default(cuid())
+  requesterId String
+  addresseeId String
+  status      FriendStatus @default(PENDING)
+  createdAt   DateTime     @default(now())
+  addressee   User         @relation("Addressees", fields: [addresseeId], references: [clerk_id])
+  requester   User         @relation("Requesters", fields: [requesterId], references: [clerk_id])
+
+  @@unique([requesterId, addresseeId])
+}
+
+model Bot {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  channel     Channel?
+}
+
+enum FriendStatus {
+  PENDING
+  ACCEPTED
+  BLOCKED
+  FRIENDS
+}
+
+enum Roles {
+  admin
+  user
+  owner
+  moderator
+  vip
+}
+
+enum ChannelTypes {
+  TEXT
+  VOZ
+  FORUM
+  ANNOUNCEMENT
+  STAGE
+}

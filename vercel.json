@@ -1,0 +1,15 @@
+{
+  "version": 2,
+  "builds": [
+    { "src": "dist/server.js", "use": "@vercel/node" }
+  ],
+"routes": [
+  { "src": "/static/(.*)", "dest": "/public/$1" },
+  { "src": "/(.*)", "dest": "/dist/server.js" }    
+],
+  "build": {
+    "env": {
+      "PRISMA_GENERATE": "true"
+    }
+  }
+}

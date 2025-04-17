@@ -6,8 +6,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const dotenv_1 = __importDefault(require("dotenv"));
 const app_1 = require("./app");
 const socket_friends_1 = require("./sockets/socket-friends");
+const socket_chat_1 = require("./sockets/socket.chat");
 dotenv_1.default.config();
 (0, socket_friends_1.setupSocket)(app_1.server);
+(0, socket_chat_1.setupSocketChat)(app_1.server);
 const PORT = process.env.PORT || 5001;
 app_1.server.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);

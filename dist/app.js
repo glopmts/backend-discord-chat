@@ -10,6 +10,7 @@ const dotenv_1 = __importDefault(require("dotenv"));
 const express_1 = __importDefault(require("express"));
 const http_1 = require("http");
 const socket_friends_1 = require("./sockets/socket-friends");
+const socket_chat_1 = require("./sockets/socket.chat");
 dotenv_1.default.config();
 const prisma = new client_1.PrismaClient();
 exports.prisma = prisma;
@@ -23,3 +24,4 @@ app.get('/', (req, res) => {
 const server = (0, http_1.createServer)(app);
 exports.server = server;
 (0, socket_friends_1.setupSocket)(server);
+(0, socket_chat_1.setupSocketChat)(server);

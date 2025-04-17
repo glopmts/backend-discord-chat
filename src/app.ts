@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import express from 'express';
 import { createServer } from "http";
 import { setupSocket } from './sockets/socket-friends';
+import { setupSocketChat } from './sockets/socket.chat';
 
 dotenv.config();
 const prisma = new PrismaClient();
@@ -19,6 +20,7 @@ app.get('/', (req, res) => {
 const server = createServer(app);
 
 setupSocket(server);
+setupSocketChat(server);
 
 export { app, prisma, server };
 
